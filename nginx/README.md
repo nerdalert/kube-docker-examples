@@ -41,7 +41,7 @@ Log in as an administrator, go to the UCP web UI, navigate to the Admin Settings
 
 ![](./images/interlock-install-3.png)
 
-_Table 2\. http routing mesh_
+_Table 2\. Enable routing mesh in UCP_
 
 By default, the routing mesh service listens on port 80 for HTTP and port 8443 for HTTPS. Change the ports if you already have services that are using them.
 
