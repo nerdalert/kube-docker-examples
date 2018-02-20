@@ -17,7 +17,7 @@
 
 Docker Enterprise Edition has a routing mesh that allows you to make your services available to the outside world using a domain name. This is also known as a layer 7 load balancer.
 
-![](/images/interlock-install-1.svg)
+![](./images/interlock-install-1.svg)
 
 _Table 1\. Swarm routing mesh_
 
@@ -25,7 +25,7 @@ In this example, the WordPress service is being served on port 8000\. Users can 
 
 Docker EE extends this and provides a routing mesh for application-layer load balancing. This allows you to access services with HTTP and HTTPS endpoints using a domain name instead of an IP.
 
-![](/images/interlock-install-2.svg)
+![](./images/interlock-install-2.svg)
 
 _Table 2\. http routing mesh_
 
@@ -39,7 +39,7 @@ The following To enable the HTTP routing mesh which will automatically provision
 
 Log in as an administrator, go to the UCP web UI, navigate to the Admin Settings page, and click the Routing Mesh option. Check the Enable routing mesh option.
 
-![](/images/interlock-install-3.png)
+![](./images/interlock-install-3.png)
 
 _Table 2\. http routing mesh_
 
