@@ -6,6 +6,7 @@
 	- [Enable the routing mesh in UCP](#enable-the-routing-mesh-in-ucp)
 	- [Interlock/NGINX Manual Installation](#interlocknginx-manual-installation)
 	- [Example Load Balancing](#example-load-balancing)
+	- [Additional Resources](#additional-resources)
 
 ## Installation Pre-Requisites
 
@@ -275,6 +276,11 @@ demo scaled to 4
 ```
 
 The four service replicas will be configured as upstreams. The load balancer will balance traffic across all service replicas.
+
+## Additional Resources
+
+Additional reading and deployment scenarios are documented in the [Docker Interlock Documentation](https://beta.docs.docker.com/ee/ucp/interlock/#deployment).
+
 
 
 
