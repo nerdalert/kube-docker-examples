@@ -1,6 +1,6 @@
 # NGINX on Docker EE
 
-- [NGINX on Docker EE](#nginx-on-docker-ee)
+- [NGINX on Docker EE](#nginx-on-docker-ee) Table of Contents
 	- [Installation Pre-Requisites](#installation-pre-requisites)
 	- [Routing Mesh Overview](#routing-mesh-overview)
 	- [Enable the routing mesh in UCP](#enable-the-routing-mesh-in-ucp)
