@@ -6,6 +6,7 @@
 	- [Enable the routing mesh in UCP](#enable-the-routing-mesh-in-ucp)
 	- [Interlock/NGINX Manual Installation](#interlocknginx-manual-installation)
 	- [Example Load Balancing](#example-load-balancing)
+	- [Verify the NGINX Service](#verify-the-nginx-service)
 	- [Additional Resources](#additional-resources)
 
 ## Installation Pre-Requisites
@@ -159,6 +160,8 @@ $> docker service create \
     ehazlett/docker-demo
 sq9ekdzyplchbjer1166320ca
 ```
+
+## Verify the NGINX Service
 
 Inspect the service `demo` created with the following:
 
