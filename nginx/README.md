@@ -15,6 +15,11 @@
 - Docker must be running in Swarm mode
 - Internet access (see Offline Installation for installing without internet access)
 
+This solution brief was tested with Docker Enterprise Edition:
+- Docker Version: 17.06.2-ee-6
+- UCP: 2.2.5
+- DTR: 2.4.2
+
 ## Routing Mesh Overview
 
 Docker Enterprise Edition has a routing mesh that allows you to make your services available to the outside world using a domain name. This is also known as a layer 7 load balancer.
