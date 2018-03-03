@@ -285,6 +285,8 @@ demo scaled to 4
 
 The four service replicas will be configured as upstreams. The load balancer will balance traffic across all service replicas.
 
+## TODO Add Labels Example
+
 ## Additional Resources
 
 Additional reading and deployment scenarios are documented in the [Docker Interlock Documentation](https://beta.docs.docker.com/ee/ucp/interlock/#deployment).
