@@ -1,16 +1,17 @@
 # NGINX on Docker EE
 
 - [NGINX on Docker EE](#nginx-on-docker-ee) Table of Contents
-	- [Installation Pre-Requisites](#installation-pre-requisites)
-	- [Routing Mesh Overview](#routing-mesh-overview)
-	- [Enable the routing mesh in UCP](#enable-the-routing-mesh-in-ucp)
-	- [Interlock/NGINX Manual Installation](#interlocknginx-manual-installation)
-	- [Example Load Balancing](#example-load-balancing)
-	- [Verify the NGINX Service](#verify-the-nginx-service)
-	- [Host Mode Networking with Interlock Proxy](#host-mode-networking-with-interlock-proxy)
-	- [Configure Proxy Services](#configure-proxy-services)
-	- [Validate Proxy Services](#validate-proxy-services)
-	- [Additional Resources](#additional-resources)
+
+  - [Installation Pre-Requisites](#installation-pre-requisites)
+  - [Routing Mesh Overview](#routing-mesh-overview)
+  - [Enable the routing mesh in UCP](#enable-the-routing-mesh-in-ucp)
+  - [Interlock/NGINX Manual Installation](#interlocknginx-manual-installation)
+  - [Example Load Balancing](#example-load-balancing)
+  - [Verify the NGINX Service](#verify-the-nginx-service)
+  - [Host Mode Networking with Interlock Proxy](#host-mode-networking-with-interlock-proxy)
+  - [Configure Proxy Services](#configure-proxy-services)
+  - [Validate Proxy Services](#validate-proxy-services)
+  - [Additional Resources](#additional-resources)
 
 ## Installation Pre-Requisites
 
@@ -19,6 +20,7 @@
 - Internet access (see Offline Installation for installing without internet access)
 
 This solution brief was tested with Docker Enterprise Edition:
+
 - Docker Version: 17.06.2-ee-6
 - UCP: 2.2.5
 - DTR: 2.4.2
@@ -27,19 +29,19 @@ This solution brief was tested with Docker Enterprise Edition:
 
 Docker Enterprise Edition has a routing mesh that allows you to make your services available to the outside world using a domain name. This is also known as a layer 7 load balancer.
 
-![](./images/interlock-install-1.svg)
+![](./images/interlock-install-1.png)
 
 _Table 1\. Swarm routing mesh_
 
-In this example, the WordPress service is being served on port 8000\. Users can access WordPress using the IP address of any node in the cluster and port 8000\. If WordPress is not running in that node, the request is redirected to a node that is.
+In this example, the WordPress service is being served on port `8000\`. Users can access WordPress using the IP address of any node in the cluster and port `8000\`. If WordPress is not running in that node, the request is redirected to a node that is.
 
 Docker EE extends this and provides a routing mesh for application-layer load balancing. This allows you to access services with HTTP and HTTPS endpoints using a domain name instead of an IP.
 
-![](./images/interlock-install-2.svg)
+![](./images/interlock-install-2.png)
 
 _Table 2\. http routing mesh_
 
-In this example, the WordPress service listens on port 8000, but it is made available to the outside world as wordpress.example.org.
+In this example, the WordPress service listens on port `8000`, but it is made available to the outside world as wordpress.example.org.
 
 When users access wordpress.example.org, the HTTP routing mesh routes the request to the service running WordPress in a way that is transparent to them.
 
@@ -53,7 +55,7 @@ Log in as an administrator, go to the UCP web UI, navigate to the Admin Settings
 
 _Table 2\. Enable routing mesh in UCP_
 
-By default, the routing mesh service listens on port 80 for HTTP and port 8443 for HTTPS. Change the ports if you already have services that are using them.
+By default, the routing mesh service listens on port `80` for HTTP and port `8443` for HTTPS. Change the ports if you already have services that are using them.
 
 View the Interlock services started by UCP running on your EE nodes.
 
@@ -71,7 +73,6 @@ $> docker ps -a | grep nginx
 38a0821a7461   dockereng/ucp-interlock-proxy:3.0.0-tp10  "nginx -g 'daemon ..."  2 minutes ago  Up 2 minutes    80/tcp   swarm-0/ucp-interlock-proxy.2.9zwregnmn7k8h4pzl4v72v73u
 ccc72c2e0a43   dockereng/ucp-interlock-proxy:3.0.0-tp10  "nginx -g 'daemon ..."  2 minutes ago  Up 2 minutes    80/tcp   swarm-1/ucp-interlock-proxy.1.qnjlsh998z2wpg6dqs7vc0v5r
 ```
-
 
 ## Interlock/NGINX Manual Installation
 
@@ -108,8 +109,7 @@ oqkvv1asncf6p2axhx41vylgt
 
 Next we will create a dedicated network for Interlock and the extensions:
 
-$> docker network create -d overlay interlock
-Now we can create the Interlock service. Note the requirement to constrain to a manager. The Interlock core service must have access to a Swarm manager, however the extension and proxy services are recommended to run on workers. See the Production section for more information on setting up for an production environment.
+$> docker network create -d overlay interlock Now we can create the Interlock service. Note the requirement to constrain to a manager. The Interlock core service must have access to a Swarm manager, however the extension and proxy services are recommended to run on workers. See the Production section for more information on setting up for an production environment.
 
 ```
 $> docker service create \
@@ -132,8 +132,7 @@ oxjvqc6gxf91        keen_clarke         replicated          1/1                 
 sjpgq7h621ex        interlock           replicated          1/1                 interlockpreview/interlock:2.0.0-preview
 ```
 
-The Interlock traffic layer is now deployed. 
-
+The Interlock traffic layer is now deployed.
 
 ## Example Load Balancing
 
@@ -372,6 +371,7 @@ $> docker service update \
     --constraint-add node.labels.nodetype==loadbalancer \
     interlock-proxy
 ```
+
 Now we can deploy the application:
 
 ```
@@ -419,7 +419,3 @@ curl -vs -H "Host: demo.local" http://127.0.0.1/ping
 ## Additional Resources
 
 Additional reading and deployment scenarios are documented in the [Docker Interlock Documentation](https://beta.docs.docker.com/ee/ucp/interlock/#deployment).
-
-
-
-
