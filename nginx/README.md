@@ -13,7 +13,11 @@
   - [Validate Proxy Services](#validate-proxy-services)
   - [Additional Resources](#additional-resources)
 
-## Installation Pre-Requisites
+# Overview
+
+This Solution Brief documents how to deploy, configure and validate NGINX in a Docker Swarm with Interlock v2.0 in both a Swarm overlay environment, as well as a standalone host mode networking proxy.
+
+# Prerequisites
 
 - Docker version 17.06+ is required to use Interlock
 - Docker must be running in Swarm mode
@@ -25,7 +29,7 @@ This solution brief was tested with Docker Enterprise Edition:
 - UCP: 2.2.5
 - DTR: 2.4.2
 
-## Routing Mesh Overview
+# Routing Mesh
 
 Docker Enterprise Edition has a routing mesh that allows you to make your services available to the outside world using a domain name. This is also known as a layer 7 load balancer.
 
@@ -41,122 +45,126 @@ Docker EE extends this and provides a routing mesh for application-layer load ba
 
 _Table 2\. http routing mesh_
 
-In this example, the WordPress service listens on port `8000`, but it is made available to the outside world as wordpress.example.org.
+In this example, the WordPress service listens on port `8000`, but it is made available to the outside world as `wordpress.example.org`.
 
-When users access wordpress.example.org, the HTTP routing mesh routes the request to the service running WordPress in a way that is transparent to them.
+When users access `wordpress.example.org`, the HTTP routing mesh routes the request to the service running WordPress in a way that is transparent to them.
 
-## Enable the routing mesh in UCP
+## Enable the Routing Mesh in UCP
 
-The following To enable the HTTP routing mesh which will automatically provision the NGINX containers to your Swarm cluster.
+Use the following to enable the HTTP routing mesh, which will automatically provision the NGINX containers to your Swarm cluster.
 
-Log in as an administrator, go to the UCP web UI, navigate to the Admin Settings page, and click the Routing Mesh option. Check the Enable routing mesh option.
+1. Log in as an administrator, go to the UCP web UI, navigate to the **Admin Settings** page, and click the **Routing Mesh** option. Check the **Enable routing mesh** option:
 
-![](./images/interlock-install-3.png)
+  ![](./images/interlock-install-3.png)
 
-_Table 2\. Enable routing mesh in UCP_
+  _Table 3\. Enable routing mesh in UCP_
 
-By default, the routing mesh service listens on port `80` for HTTP and port `8443` for HTTPS. Change the ports if you already have services that are using them.
+2. By default, the routing mesh service listens on port `80` for HTTP and port `8443` for HTTPS. Change the ports if you already have services that are using them.
 
-View the Interlock services started by UCP running on your EE nodes.
+3. View the Interlock services started by UCP running on your EE nodes.
 
-```
-$> docker service ls | grep interlock
-1nwy84jpoxly        ucp-interlock-extension   replicated          1/1                 dockereng/ucp-interlock-extension:3.0.0-tp10
-rth5tavyh0ke        ucp-interlock-proxy       replicated          2/2                 dockereng/ucp-interlock-proxy:3.0.0-tp10       *:80->80/tcp,*:8443->443/tcp
-w72amyxljrp2        ucp-interlock             replicated          1/1                 dockereng/ucp-interlock:3.0.0-tp10
-```
+  ```
+  $> docker service ls | grep interlock
+  1nwy84jpoxly        ucp-interlock-extension   replicated          1/1                 dockereng/ucp-interlock-extension:3.0.0-tp10
+  rth5tavyh0ke        ucp-interlock-proxy       replicated          2/2                 dockereng/ucp-interlock-proxy:3.0.0-tp10           *:80->80/tcp,*:8443->443/tcp
+  w72amyxljrp2        ucp-interlock             replicated          1/1                 dockereng/ucp-interlock:3.0.0-tp10
+  ```
 
-View the NGINX containers that were started by UCP running on your EE nodes.
+4. View the NGINX containers that were started by UCP running on your EE nodes.
 
-```
-$> docker ps -a | grep nginx
-38a0821a7461   dockereng/ucp-interlock-proxy:3.0.0-tp10  "nginx -g 'daemon ..."  2 minutes ago  Up 2 minutes    80/tcp   swarm-0/ucp-interlock-proxy.2.9zwregnmn7k8h4pzl4v72v73u
-ccc72c2e0a43   dockereng/ucp-interlock-proxy:3.0.0-tp10  "nginx -g 'daemon ..."  2 minutes ago  Up 2 minutes    80/tcp   swarm-1/ucp-interlock-proxy.1.qnjlsh998z2wpg6dqs7vc0v5r
-```
+  ```
+  $> docker ps -a | grep nginx
+  38a0821a7461   dockereng/ucp-interlock-proxy:3.0.0-tp10  "nginx -g 'daemon ..."  2 minutes ago  Up 2 minutes    80/tcp   swarm-0/ucp-interlock-proxy.2.9zwregnmn7k8h4pzl4v72v73u
+  ccc72c2e0a43   dockereng/ucp-interlock-proxy:3.0.0-tp10  "nginx -g 'daemon ..."  2 minutes ago  Up 2 minutes    80/tcp   swarm-    1/ucp-interlock-proxy.1.qnjlsh998z2wpg6dqs7vc0v5r
+  ```
 
-## Interlock/NGINX Manual Installation
+# Interlock/NGINX Manual Installation
 
-Interlock uses a configuration file for the core service. The following is an example config to get started. In order to utilize the deployment and recovery features in Swarm we will create a Docker Config object:
+Interlock uses a configuration file for the core service. The following is an example config to get started.
 
-```
-$> cat << EOF | docker config create service.interlock.conf -
-ListenAddr = ":8080"
-DockerURL = "unix:///var/run/docker.sock"
-PollInterval = "3s"
+1. To utilize the deployment and recovery features in Swarm, create a Docker config object:
 
-[Extensions]
-  [Extensions.default]
-    Image = "interlockpreview/interlock-extension-nginx:2.0.0-preview"
-    Args = ["-D"]
-    ProxyImage = "nginx:alpine"
-    ProxyArgs = []
-    ProxyConfigPath = "/etc/nginx/nginx.conf"
-    ServiceCluster = ""
-    PublishMode = "ingress"
-    PublishedPort = 80
-    TargetPort = 80
-    PublishedSSLPort = 443
-    TargetSSLPort = 443
-    [Extensions.default.Config]
-      User = "nginx"
-      PidPath = "/var/run/proxy.pid"
-      WorkerProcesses = 1
-      RlimitNoFile = 65535
-      MaxConnections = 2048
-EOF
-oqkvv1asncf6p2axhx41vylgt
-```
+  ```
+  $> cat << EOF | docker config create service.interlock.conf -
+  ListenAddr = ":8080"
+  DockerURL = "unix:///var/run/docker.sock"
+  PollInterval = "3s"
 
-Next we will create a dedicated network for Interlock and the extensions:
+  [Extensions]
+   [Extensions.default]
+     Image = "interlockpreview/interlock-extension-nginx:2.0.0-preview"
+     Args = ["-D"]
+     ProxyImage = "nginx:alpine"
+     ProxyArgs = []
+     ProxyConfigPath = "/etc/nginx/nginx.conf"
+     ServiceCluster = ""
+     PublishMode = "ingress"
+     PublishedPort = 80
+     TargetPort = 80
+     PublishedSSLPort = 443
+     TargetSSLPort = 443
+     [Extensions.default.Config]
+       User = "nginx"
+       PidPath = "/var/run/proxy.pid"
+       WorkerProcesses = 1
+       RlimitNoFile = 65535
+       MaxConnections = 2048
+  EOF
+  oqkvv1asncf6p2axhx41vylgt
+  ```
 
-$> docker network create -d overlay interlock Now we can create the Interlock service. Note the requirement to constrain to a manager. The Interlock core service must have access to a Swarm manager, however the extension and proxy services are recommended to run on workers. See the Production section for more information on setting up for an production environment.
+  [Example Interlock Configuration File](./interlock.conf)
 
-```
-$> docker service create \
-    --name interlock \
-    --mount src=/var/run/docker.sock,dst=/var/run/docker.sock,type=bind \
-    --network interlock \
-    --constraint node.role==manager \
-    --config src=service.interlock.conf,target=/config.toml \
-    interlockpreview/interlock:2.0.0-preview -D run -c /config.toml
-sjpgq7h621exno6svdnsvpv9z
-```
+2. Next, create a dedicated network for Interlock and the extensions:
 
-There should be three (3) services created. One for the Interlock service, one for the extension service and one for the proxy service:
+  ```
+  $> docker network create -d overlay interlock Now we can create the Interlock service. Note the requirement to constrain to a manager. The Interlock core service must have access to a Swarm manager, however the extension and proxy services are recommended to run on workers. See the Production section for more information on setting up for an production environment.
 
-```
-$> docker service ls
-ID                  NAME                MODE                REPLICAS            IMAGE                                                       PORTS
-lheajcskcbby        modest_raman        replicated          1/1                 nginx:alpine                                                *:80->80/tcp *:443->443/tcp
-oxjvqc6gxf91        keen_clarke         replicated          1/1                 interlockpreview/interlock-extension-nginx:2.0.0-preview
-sjpgq7h621ex        interlock           replicated          1/1                 interlockpreview/interlock:2.0.0-preview
-```
+  $> docker service create \
+     --name interlock \
+     --mount src=/var/run/docker.sock,dst=/var/run/docker.sock,type=bind \
+     --network interlock \
+     --constraint node.role==manager \
+     --config src=service.interlock.conf,target=/config.toml \
+     interlockpreview/interlock:2.0.0-preview -D run -c /config.toml
+  sjpgq7h621exno6svdnsvpv9z
+  ```
 
-The Interlock traffic layer is now deployed.
+3. There should be three (3) services created. One for the Interlock service, one for the extension service and one for the proxy service:
 
-## Example Load Balancing
+  ```
+  $> docker service ls
+  ID                  NAME                MODE                REPLICAS            IMAGE                                                       PORTS
+  lheajcskcbby        modest_raman        replicated          1/1                 nginx:alpine                                                *:80->80/tcp *:443->443/tcp
+  oxjvqc6gxf91        keen_clarke         replicated          1/1                 interlockpreview/interlock-extension-nginx:2.0.0-preview
+  sjpgq7h621ex        interlock           replicated          1/1                 interlockpreview/interlock:2.0.0-preview
+  ```
+
+4. The Interlock traffic layer is now deployed.
+
+# Example Load Balancing
 
 Once Interlock has been deployed you are now ready to launch and publish applications. Using Service Labels the service is configured to publish itself to the load balancer.
 
-Note: the examples below assume a DNS entry (or local hosts entry if you are testing local) exists for each of the applications.
+> **Note:** The following examples assume a DNS entry (or local hosts entry if you are testing local) exists for each of the applications.
 
-To publish we will create a Docker Service using two labels:
+To publish, create a Docker Service using two labels:
 
 - `com.docker.lb.hosts`
 - `com.docker.lb.port`
 
 The `com.docker.lb.hosts` label instructs Interlock where the service should be available. The `com.docker.lb.port` label instructs what port the proxy service should use to access the upstreams.
 
-In this example we will publish a demo service to the `host demo.local`.
+In this example, publish a demo service to the `host demo.local`.
 
-First we will create an overlay network so that service traffic is isolated and secure:
+First, create an overlay network so that service traffic is isolated and secure:
 
 ```
 $> docker network create -d overlay demo
 1ujq8o1fhvnj084eohejhmgur
 ```
 
-Next we will deploy the application:
+Next deploy the application:
 
 ```
 $> docker service create \
@@ -168,7 +176,7 @@ $> docker service create \
 sq9ekdzyplchbjer1166320ca
 ```
 
-## Verify the NGINX Service
+# Verify the NGINX Service
 
 Inspect the service `demo` created with the following:
 
@@ -271,7 +279,7 @@ docker service inspect demo
 ]
 ```
 
-Interlock will detect once the service is available and publish it. Once the tasks are running and the proxy service has been updated the application should be available via <http://demo.local>
+Interlock will detect once the service is available and publish it. Once the tasks are running and the proxy service has been updated the application should be available via <http://demo.local>.
 
 ```
 $> curl -s -H "Host: demo.local" http://127.0.0.1/ping
@@ -285,19 +293,19 @@ $> docker service scale demo=4
 demo scaled to 4
 ```
 
-The four service replicas will be configured as upstreams. The load balancer will balance traffic across all service replicas.
+The four service replicas are configured as upstreams. The load balancer balances traffic across all service replicas.
 
-## Host Mode Networking with Interlock Proxy
+# Host Mode Networking with Interlock Proxy
 
 In some scenarios operators cannot use the overlay networks (overlay networking ingress routing mesh would be unavailable). Interlock supports host mode networking in a variety of ways (proxy only, Interlock only, application only, hybrid).
 
-In this example we will configure an eight (8) node Swarm cluster that uses host mode networking to route traffic without using overlay networks. There are three (3) managers and five (5) workers. Two of the workers are configured with node labels to be dedicated ingress cluster load balancer nodes. These will receive all application traffic.
+In this example an eight (8) node Swarm cluster is configured to use host mode networking to route traffic without using overlay networks. There are three (3) managers and five (5) workers. Two of the workers are configured with node labels to be dedicated ingress cluster load balancer nodes. These receive all application traffic.
 
-This example will not cover the actual deployment of infrastructure. It assumes you have a vanilla Swarm cluster (docker init and docker swarm join from the nodes). See the Swarm documentation if you need help getting a Swarm cluster deployed.
+This example does not cover the actual deployment of infrastructure. It assumes you have a vanilla Swarm cluster (docker init and docker swarm join from the nodes). See the Swarm documentation if you need help getting a Swarm cluster deployed.
 
-Note: when using host mode networking you will not be able to use the DNS service discovery as that requires overlay networking. You can use other tooling such as Registrator that will give you that functionality if needed.
+> **Note:** When using host mode networking you will not be able to use the DNS service discovery as that requires overlay networking. You can use other tooling such as Registrator that give you that functionality if needed.
 
-We will configure the load balancer worker nodes named `lb-00` and `lb-01` with node labels in order to pin the Interlock Proxy service. Once you are logged into one of the Swarm managers run the following to add node labels to the dedicated load balancer worker nodes:
+Configure the load balancer worker nodes named `lb-00` and `lb-01` with node labels in order to pin the Interlock Proxy service. Once you are logged into one of the Swarm managers run the following to add node labels to the dedicated load balancer worker nodes:
 
 ```
 $> docker node update --label-add nodetype=loadbalancer lb-00
@@ -315,7 +323,7 @@ $> docker node inspect -f '{{ .Spec.Labels  }}' lb-01
 map[nodetype:loadbalancer]
 ```
 
-Next, we will create a configuration object for Interlock that specifies host mode networking:
+Next, create a configuration object for Interlock that specifies host mode networking:
 
 ```
 $> cat << EOF | docker config create service.interlock.conf -
@@ -347,9 +355,11 @@ EOF
 oqkvv1asncf6p2axhx41vylgt
 ```
 
-Note the `PublishMode = "host"` setting. This instructs Interlock to configure the proxy service for host mode networking.
+[Example Interlock Host Mode Network Configuration File](./host-mode-interlock.conf)
 
-Now we can create the Interlock service also using host mode networking:
+Notice the `PublishMode = "host"` setting. This instructs Interlock to configure the proxy service for host mode networking.
+
+Now create the Interlock service also using host mode networking:
 
 ```
 $> docker service create \
@@ -362,9 +372,9 @@ $> docker service create \
 sjpgq7h621exno6svdnsvpv9z
 ```
 
-## Configure Proxy Services
+# Configure Proxy Services
 
-Once we have the node labels we can re-configure the Interlock Proxy services to be constrained to the workers. Again, from a manager run the following to pin the proxy services to the load balancer worker nodes:
+Once you have the node labels, re-configure the Interlock Proxy services to be constrained to the workers. Again, from a manager run the following to pin the proxy services to the load balancer worker nodes:
 
 ```
 $> docker service update \
@@ -372,7 +382,7 @@ $> docker service update \
     interlock-proxy
 ```
 
-Now we can deploy the application:
+Now deploy the application:
 
 ```
 $> docker service create \
@@ -385,9 +395,9 @@ $> docker service create \
     ehazlett/docker-demo
 ```
 
-## Validate Proxy Services
+# Validate Proxy Services
 
-This will run the service using host mode networking. Each task for the service will have a high port (i.e. `32768`) and use the node IP address to connect. You can see this when inspecting the headers from the request:
+This runs the service using host mode networking. Each task for the service has a high port (i.e. `32768`) and uses the node IP address to connect. You can see this when inspecting the headers from the request:
 
 ```
 $> curl -vs -H "Host: demo.local" http://127.0.0.1/ping
@@ -416,6 +426,6 @@ curl -vs -H "Host: demo.local" http://127.0.0.1/ping
 {"instance":"897d3c7b9e9c","version":"0.1","metadata":"demo","request_id":"e4180a8fc6ee15f8d46f11df67c24a7d"}
 ```
 
-## Additional Resources
+# Additional Resources
 
 Additional reading and deployment scenarios are documented in the [Docker Interlock Documentation](https://beta.docs.docker.com/ee/ucp/interlock/#deployment).
